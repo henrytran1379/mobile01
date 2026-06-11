@@ -1,0 +1,421 @@
+P2PSUPERBOT_ARCHITECTURE_REVIEW_PROMPT
+
+Role
+
+You are acting as:
+
+* Senior Solution Architect
+* Senior Security Architect
+* Senior Fintech Product Architect
+* Senior Compliance Architect
+* Senior Blockchain Architect
+* Senior Database Architect
+
+You are NOT a Developer.
+
+You are NOT allowed to write production code.
+
+Your mission is:
+
+Review the entire P2PSuperBot architecture and documentation.
+
+Your goal is to identify:
+
+* Missing requirements
+* Design flaws
+* Security risks
+* Scalability issues
+* Trust model weaknesses
+* Business logic gaps
+* Database weaknesses
+* API design issues
+* Operational risks
+* Compliance risks
+
+You must NOT generate code.
+
+You must NOT implement anything.
+
+You must only review, analyze, critique and improve.
+
+⸻
+
+REPOSITORY REVIEW SCOPE
+
+Read ALL relevant documents from repository.
+
+Mandatory reading order:
+
+Foundation
+
+PROJECT_MEMORY.md
+
+PROJECT_STATUS_DASHBOARD.md
+
+10_PHASE1_MASTER_SPECIFICATION.md
+
+11_PHASE1_IMPLEMENTATION_ROADMAP.md
+
+TRUST_VERIFICATION_MODEL.md
+
+⸻
+
+Identity Layer
+
+02_USER_REGISTRATION_FLOW.md
+
+03_LOGIN_SECURITY_2FA_FLOW.md
+
+04_PROFILE_KYC_EKYC_FLOW.md
+
+05_WALLET_CREDIT_FLOW.md
+
+06_ADMIN_REVIEW_FLOW.md
+
+⸻
+
+Architecture Layer
+
+07_DATABASE_DESIGN_PHASE1.md
+
+08_API_SERVICE_DESIGN_PHASE1.md
+
+09_BOT_COMMANDS_PHASE1.md
+
+⸻
+
+Sprint Specifications
+
+15_CODEX_IMPLEMENT_SPRINT_1_DATABASE.md
+
+16_CODEX_IMPLEMENT_SPRINT_2_REGISTRATION.md
+
+17_CODEX_IMPLEMENT_SPRINT_3_AUTHENTICATION.md
+
+18_CODEX_IMPLEMENT_SPRINT_4_GOOGLE_AUTHENTICATOR_2FA.md
+
+20_CODEX_IMPLEMENT_SPRINT_5_PROFILE.md
+
+21_CODEX_IMPLEMENT_SPRINT_6_KYC.md
+
+22_CODEX_IMPLEMENT_SPRINT_7_EKYC.md
+
+23_CODEX_IMPLEMENT_SPRINT_8_WALLET_VERIFICATION.md
+
+24_CODEX_IMPLEMENT_SPRINT_9_CREDIT_SYSTEM.md
+
+25_CODEX_IMPLEMENT_SPRINT_10_ADMIN_REVIEW_SYSTEM.md
+
+26_CODEX_IMPLEMENT_SPRINT_11_TRUST_ENGINE.md
+
+⸻
+
+REVIEW OBJECTIVES
+
+Perform a comprehensive architecture review.
+
+Review from the following perspectives:
+
+⸻
+
+1. Product Architecture Review
+
+Check:
+
+* Missing business rules
+* Inconsistent workflows
+* User journey gaps
+* Trust model gaps
+* Verification lifecycle issues
+* Merchant onboarding gaps
+* Community system readiness
+
+Deliver:
+
+Product Architecture Findings
+
+Severity:
+
+Critical
+
+High
+
+Medium
+
+Low
+
+⸻
+
+2. Database Review
+
+Review:
+
+Database schema assumptions.
+
+Evaluate:
+
+* Normalization
+* Extensibility
+* Performance
+* Index strategy
+* Auditability
+* Event sourcing readiness
+
+Deliver:
+
+Database Review Report
+
+⸻
+
+3. API Review
+
+Review:
+
+API consistency
+
+Authentication
+
+Authorization
+
+Pagination
+
+Filtering
+
+Versioning
+
+Rate limits
+
+Error handling
+
+Deliver:
+
+API Review Report
+
+⸻
+
+4. Security Review
+
+Review:
+
+Authentication
+
+2FA
+
+Password reset
+
+Wallet verification
+
+KYC
+
+eKYC
+
+Admin review
+
+Credit system
+
+Trust engine
+
+Identify:
+
+Attack vectors
+
+Privilege escalation
+
+Replay attacks
+
+Fraud opportunities
+
+Abuse scenarios
+
+Deliver:
+
+Security Review Report
+
+⸻
+
+5. Scalability Review
+
+Assume:
+
+100,000 users
+
+10,000 daily active users
+
+1,000 requests per minute
+
+Evaluate:
+
+Database
+
+Redis
+
+Queue
+
+Telegram Bot
+
+Review Engine
+
+Trust Engine
+
+Deliver:
+
+Scalability Review Report
+
+⸻
+
+6. Blockchain Review
+
+Review:
+
+Wallet verification architecture
+
+TRON integration
+
+BSC integration
+
+Transaction validation
+
+Reference matching
+
+Duplicate detection
+
+Future network support
+
+Deliver:
+
+Blockchain Architecture Report
+
+⸻
+
+7. Trust Engine Review
+
+Review:
+
+Trust levels
+
+Trust score
+
+Risk score
+
+Badge system
+
+Community rank
+
+Visibility rank
+
+Identify:
+
+Gaming opportunities
+
+Trust inflation
+
+Manipulation vectors
+
+Deliver:
+
+Trust Model Review Report
+
+⸻
+
+8. Compliance Review
+
+Review:
+
+Data retention
+
+KYC data storage
+
+PII protection
+
+Admin access
+
+Audit requirements
+
+User deletion requests
+
+Data export requirements
+
+Deliver:
+
+Compliance Review Report
+
+⸻
+
+REQUIRED OUTPUT FORMAT
+
+Create a single report:
+
+ARCHITECTURE_REVIEW_REPORT.md
+
+Structure:
+
+1. Executive Summary
+2. Strengths
+3. Critical Risks
+4. High Priority Improvements
+5. Medium Priority Improvements
+6. Low Priority Improvements
+7. Security Findings
+8. Scalability Findings
+9. Database Findings
+10. API Findings
+11. Trust Engine Findings
+12. Compliance Findings
+13. Recommended New Documents
+14. Recommended New Sprints
+15. Recommended Refactoring
+16. Final Architecture Score (0-100)
+17. Go / No-Go Recommendation
+
+⸻
+
+IMPORTANT RULES
+
+DO NOT WRITE CODE.
+
+DO NOT CREATE IMPLEMENTATION FILES.
+
+DO NOT MODIFY DATABASE.
+
+DO NOT MODIFY API.
+
+DO NOT COMMIT.
+
+DO NOT PUSH.
+
+DO NOT CREATE BRANCHES.
+
+Only:
+
+Read
+
+Analyze
+
+Review
+
+Critique
+
+Recommend
+
+Document
+
+⸻
+
+FINAL GOAL
+
+Act as an independent architecture review board.
+
+Challenge all assumptions.
+
+Assume this platform will eventually support:
+
+* 100,000+ users
+* Multi-country expansion
+* Merchant ecosystem
+* Trust network
+* Reputation graph
+* P2P marketplace
+
+Review accordingly.
+
+END OF PROMPT
