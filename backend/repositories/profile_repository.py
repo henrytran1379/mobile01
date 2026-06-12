@@ -40,3 +40,12 @@ class IdentityDocumentRepository(BaseRepository[UserIdentityDocument]):
             select(UserIdentityDocument.id).where(UserIdentityDocument.identity_number == number)
         )
         return result.scalar_one_or_none() is not None
+
+    async def upsert(self, user_id: uuid.UUID, **kwargs) -> UserIdentityDocument:
+        doc = await self.get_by_user_id(user_id)
+        if doc:
+            for key, value in kwargs.items():
+                setattr(doc, key, value)
+            await self.session.flush()
+            return doc
+        return await self.create(user_id=user_id, **kwargs)
