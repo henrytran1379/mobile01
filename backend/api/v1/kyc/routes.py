@@ -8,6 +8,7 @@ from backend.core.config import settings
 from backend.services.kyc_service import KYCService
 from backend.services.ekyc_service import EKYCService
 from backend.security.permissions import get_current_user_id
+from backend.schemas.ekyc import EKYCResultRequest
 
 router = APIRouter(tags=["kyc"])
 
@@ -72,3 +73,17 @@ async def upload_ekyc(
 async def ekyc_status(db: AsyncSession = Depends(get_db), user_id: str = Depends(get_current_user_id)):
     svc = EKYCService(db)
     return await svc.get_status(user_id)
+
+
+@router.post("/ekyc/submit-result", status_code=201)
+async def submit_ekyc_result(
+    body: EKYCResultRequest,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    user_id: str = Depends(get_current_user_id),
+):
+    svc = EKYCService(db)
+    return await svc.save_result(
+        user_id, body,
+        ip_address=request.client.host if request.client else None,
+    )
