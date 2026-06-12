@@ -32,7 +32,7 @@ class ProfileService:
     async def update_profile(self, user_id: str, data: dict, ip_address: str | None = None) -> dict:
         uid = uuid.UUID(user_id)
         allowed_fields = {"full_name", "date_of_birth", "gender", "nationality", "avatar_url"}
-        update_data = {k: v for k, v in data.items() if k in allowed_fields and v is not None}
+        update_data = {k: v for k, v in data.items() if k in allowed_fields and v is not None and v != ""}
 
         await self.profile_repo.upsert(uid, **update_data)
 
