@@ -27,11 +27,13 @@ class ProfileService:
             "nationality": profile.nationality if profile else None,
             "avatar_url": profile.avatar_url if profile else None,
             "identity_number": mask(identity.identity_number, 3) if identity else None,
+            "phone": profile.phone if profile else None,
+            "address": profile.address if profile else None,
         }
 
     async def update_profile(self, user_id: str, data: dict, ip_address: str | None = None) -> dict:
         uid = uuid.UUID(user_id)
-        allowed_fields = {"full_name", "date_of_birth", "gender", "nationality", "avatar_url"}
+        allowed_fields = {"full_name", "date_of_birth", "gender", "nationality", "avatar_url", "phone", "address"}
         update_data = {k: v for k, v in data.items() if k in allowed_fields and v is not None}
 
         await self.profile_repo.upsert(uid, **update_data)

@@ -24,12 +24,16 @@ class User(Base, UUIDPrimaryKey, TimestampMixin):
 
 
 class UserStatus:
-    ACCOUNT_CREATED = "ACCOUNT_CREATED"
-    WAITING_FIRST_LOGIN = "WAITING_FIRST_LOGIN"
+    PENDING_EMAIL_VERIFICATION = "PENDING_EMAIL_VERIFICATION"
+    ACCOUNT_CREATED = "ACCOUNT_CREATED"          # email verified, chưa đổi pw
+    WAITING_FIRST_LOGIN = "WAITING_FIRST_LOGIN"  # đã đổi pw, chưa active
     ACTIVE = "ACTIVE"
     LOCKED = "LOCKED"
     SUSPENDED = "SUSPENDED"
     DISABLED = "DISABLED"
+
+    # Các trạng thái chưa đăng nhập lần nào / chưa đổi mật khẩu
+    UNVERIFIED = {PENDING_EMAIL_VERIFICATION, ACCOUNT_CREATED}
 
 
 class UserRole:

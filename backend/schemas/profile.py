@@ -9,6 +9,8 @@ class ProfileUpdateRequest(BaseModel):
     gender: Optional[str] = None
     nationality: Optional[str] = None
     avatar_url: Optional[str] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
 
 
 class ProfileResponse(BaseModel):
@@ -18,3 +20,5 @@ class ProfileResponse(BaseModel):
     nationality: Optional[str] = None
     avatar_url: Optional[str] = None
     identity_number: Optional[str] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None

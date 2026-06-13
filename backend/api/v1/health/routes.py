@@ -23,7 +23,7 @@ async def ready(db: AsyncSession = Depends(get_db)):
 
     try:
         r = await get_redis()
-        await r.ping()
+        await r.execute_command("PING")
         checks["redis"] = "ok"
     except Exception as e:
         checks["redis"] = f"error: {e}"

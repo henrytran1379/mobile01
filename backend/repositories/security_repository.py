@@ -58,6 +58,14 @@ class UserSecurityRepository(BaseRepository[UserSecurity]):
             .values(two_factor_enabled=False, two_factor_secret=None)
         )
 
+    async def set_password(self, user_id: uuid.UUID, new_hash: str) -> None:
+        """Set password hash (dùng khi tạo mới hoặc resend credentials)."""
+        await self.session.execute(
+            update(UserSecurity)
+            .where(UserSecurity.user_id == user_id)
+            .values(password_hash=new_hash)
+        )
+
     async def change_password(self, user_id: uuid.UUID, new_hash: str) -> None:
         await self.session.execute(
             update(UserSecurity)

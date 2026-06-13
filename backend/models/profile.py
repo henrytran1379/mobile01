@@ -15,6 +15,8 @@ class UserProfile(Base, UUIDPrimaryKey, TimestampMixin):
     gender: Mapped[str | None] = mapped_column(String(20), nullable=True)
     nationality: Mapped[str | None] = mapped_column(String(100), nullable=True)
     avatar_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    phone: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    address: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
 class UserIdentityDocument(Base, UUIDPrimaryKey, TimestampMixin):

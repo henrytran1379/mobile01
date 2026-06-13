@@ -1,8 +1,12 @@
+import asyncio
+import logging
 import uuid
 from datetime import datetime, timedelta, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.models.user import User, UserStatus
+
+logger = logging.getLogger(__name__)
 from backend.repositories.user_repository import UserRepository
 from backend.repositories.security_repository import (
     UserSecurityRepository, RegistrationSessionRepository,
@@ -39,9 +43,19 @@ class AuthService:
         self.audit_repo = AuditLogRepository(session)
 
     async def register(self, email: str, ip_address: str | None = None) -> dict:
-        if await self.user_repo.email_exists(email):
-            raise AuthError("EMAIL_EXISTS", "Email already registered")
+        existing = await self.user_repo.get_by_email(email)
 
+        if existing:
+            # Email đã tồn tại nhưng chưa xác minh → resend
+            if existing.status in UserStatus.UNVERIFIED:
+                return await self._resend_credentials(existing, ip_address, is_resend=True)
+            # Email đã active → block
+            raise AuthError(
+                "EMAIL_REGISTERED",
+                "Email already registered. Please login or reset your password.",
+            )
+
+        # Tạo user mới
         user_code = generate_user_code()
         while await self.user_repo.get_by_user_code(user_code):
             user_code = generate_user_code()
@@ -49,13 +63,28 @@ class AuthService:
         user = await self.user_repo.create(
             email=email,
             user_code=user_code,
-            status=UserStatus.ACCOUNT_CREATED,
+            status=UserStatus.PENDING_EMAIL_VERIFICATION,
             role="USER",
         )
 
+        await self.security_repo.create(
+            user_id=user.id,
+            password_hash="",  # placeholder, set bên dưới
+        )
+
+        return await self._resend_credentials(user, ip_address, is_resend=False)
+
+    async def _resend_credentials(self, user, ip_address: str | None, is_resend: bool) -> dict:
+        """Tạo/làm mới registration session và gửi email credentials."""
         temp_password = generate_temp_password()
         activation_token = generate_activation_token()
         expires_at = datetime.now(timezone.utc) + timedelta(hours=settings.TEMP_PASSWORD_EXPIRE_HOURS)
+        now = datetime.now(timezone.utc)
+
+        # Invalidate session cũ (mark used)
+        old_session = await self.reg_session_repo.get_active_by_user(user.id)
+        if old_session:
+            await self.reg_session_repo.mark_used(old_session.id)
 
         await self.reg_session_repo.create(
             user_id=user.id,
@@ -63,29 +92,36 @@ class AuthService:
             activation_token_hash=hash_password(activation_token),
             expires_at=expires_at,
             used=False,
-            created_at=datetime.now(timezone.utc),
+            created_at=now,
         )
 
-        await self.security_repo.create(
-            user_id=user.id,
-            password_hash=hash_password(temp_password),
-        )
+        # Cập nhật password hash trong security
+        await self.security_repo.set_password(user.id, hash_password(temp_password))
 
         await self.audit_repo.log(
-            action="USER_REGISTERED",
+            action="USER_REGISTERED" if not is_resend else "VERIFICATION_EMAIL_RESENT",
             actor_type="SYSTEM",
             target_id=user.id,
             target_type="USER",
             ip_address=ip_address,
-            metadata={"email": email, "user_code": user_code},
+            metadata={"email": user.email, "user_code": user.user_code},
         )
 
         return {
             "user_id": str(user.id),
-            "user_code": user_code,
+            "user_code": user.user_code,
             "temp_password": temp_password,
             "activation_token": activation_token,
+            "resent": is_resend,
         }
+
+    async def resend_verification(self, email: str, ip_address: str | None = None) -> dict:
+        """Resend credentials — luôn trả về generic response để tránh user enumeration."""
+        user = await self.user_repo.get_by_email(email)
+        if user and user.status in UserStatus.UNVERIFIED:
+            await self._resend_credentials(user, ip_address, is_resend=True)
+        # Trả về generic dù email có tồn tại hay không
+        return {"success": True, "message": "If the email exists and is unverified, a new email has been sent."}
 
     async def login(self, email: str, password: str, ip_address: str | None = None) -> dict:
         user = await self.user_repo.get_by_email(email)
@@ -113,7 +149,10 @@ class AuthService:
 
         await self.security_repo.update_last_login(user.id, now)
 
-        if user.status == UserStatus.ACCOUNT_CREATED:
+        if user.status in (UserStatus.ACCOUNT_CREATED, UserStatus.PENDING_EMAIL_VERIFICATION):
+            # Nâng status lên ACCOUNT_CREATED nếu vẫn còn PENDING
+            if user.status == UserStatus.PENDING_EMAIL_VERIFICATION:
+                await self.user_repo.update_status(user.id, UserStatus.ACCOUNT_CREATED)
             await self.audit_repo.log(
                 action="FIRST_LOGIN_ATTEMPT",
                 actor_type="USER",
@@ -128,6 +167,32 @@ class AuthService:
             )
             return {"requires_2fa": True, "pending_token": pending_token}
 
+        return await self._create_full_session(user, security, ip_address)
+
+    async def first_login_change_password(
+        self, user_id: str, old_password: str, new_password: str, ip_address: str | None = None
+    ) -> dict:
+        """Đổi mật khẩu lần đầu (không cần JWT). Trả về access token luôn."""
+        uid = uuid.UUID(user_id)
+        user = await self.user_repo.get_by_id(uid)
+        if not user:
+            raise AuthError("USER_NOT_FOUND", "User not found")
+        if user.status not in UserStatus.UNVERIFIED:
+            raise AuthError("INVALID_CREDENTIALS", "Invalid request")
+
+        security = await self.security_repo.get_by_user_id(uid)
+        if not security or not verify_password(old_password, security.password_hash):
+            raise AuthError("INVALID_CREDENTIALS", "Invalid email or password")
+
+        await self.security_repo.change_password(uid, hash_password(new_password))
+        await self.user_repo.update_status(uid, UserStatus.WAITING_FIRST_LOGIN)
+        await self.audit_repo.log(
+            action="FIRST_LOGIN_PASSWORD_CHANGED",
+            actor_type="USER",
+            actor_id=uid,
+            ip_address=ip_address,
+        )
+        # Trả về full session ngay
         return await self._create_full_session(user, security, ip_address)
 
     async def change_password(
@@ -267,3 +332,15 @@ class AuthService:
             "user_code": user.user_code,
             "role": user.role,
         }
+
+
+async def _send_reg_email(email: str, user_code: str, temp_password: str) -> None:
+    try:
+        from backend.integrations.smtp.sender import send_registration_email
+        ok = await send_registration_email(email, user_code, temp_password)
+        if ok:
+            logger.info("Registration email sent to %s", email)
+        else:
+            logger.warning("Failed to send registration email to %s", email)
+    except Exception as e:
+        logger.error("Email error for %s: %s", email, e)
